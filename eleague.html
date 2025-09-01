@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Efootball League Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #eef1f6;
+            --light-shadow: #ffffff;
+            --dark-shadow: #d2d4da;
+            --text-color: #333;
+            --promotion-color: #a4e5b2;
+            --relegation-color: #f7b4b4;
+            --primary-shadow: 8px 8px 16px var(--dark-shadow), -8px -8px 16px var(--light-shadow);
+            --inset-shadow: inset 2px 2px 5px var(--dark-shadow), inset -2px -2px 5px var(--light-shadow);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container-main {
+             min-height: 100vh;
+        }
+
+        .neumorphic-card {
+            background: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: var(--primary-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .neumorphic-button {
+            background: var(--bg-color);
+            border: none;
+            outline: none;
+            font-weight: 500;
+            border-radius: 12px;
+            box-shadow: 6px 6px 12px var(--dark-shadow), -6px -6px 12px var(--light-shadow);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .neumorphic-button:hover {
+            box-shadow: 4px 4px 8px var(--dark-shadow), -4px -4px 8px var(--light-shadow);
+            transform: scale(0.98);
+        }
+
+        .neumorphic-button:active {
+            box-shadow: var(--inset-shadow);
+            transform: scale(0.95);
+        }
+
+        .neumorphic-input {
+            background: var(--bg-color);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            box-shadow: var(--inset-shadow);
+            transition: all 0.2s ease-in-out;
+            outline: none;
+        }
+
+        .neumorphic-table-container {
+            border-radius: 20px;
+            overflow: auto;
+            position: relative;
+            box-shadow: var(--primary-shadow);
+        }
+
+        .neumorphic-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            padding: 24px;
+        }
+
+        .neumorphic-table th, .neumorphic-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid rgba(220, 220, 220, 0.5);
+            white-space: nowrap;
+            font-size: 0.95rem;
+            background: var(--bg-color);
+        }
+
+        .neumorphic-table th {
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .neumorphic-table th:first-child, .neumorphic-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 22;
+            background: var(--bg-color);
+            font-weight: 700;
+            padding: 1rem 0.75rem;
+        }
+
+        .neumorphic-table th:nth-child(2), .neumorphic-table td:nth-child(2) {
+            position: sticky;
+            left: 3rem;
+            z-index: 21;
+            min-width: 120px;
+            background: var(--bg-color);
+            font-weight: 700;
+        }
+
+        .neumorphic-table th:first-child { border-top-left-radius: 20px; }
+        .neumorphic-table th:last-child { border-top-right-radius: 20px; }
+
+        .row-promotion {
+            background-color: var(--promotion-color);
+        }
+
+        .row-relegation {
+            background-color: var(--relegation-color);
+        }
+
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        .sidenav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .sidenav-toggle {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            width: 3rem;
+            height: 3rem;
+            box-shadow: var(--primary-shadow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidenav-toggle-bar {
+            background: var(--text-color);
+            width: 1.5rem;
+            height: 2px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .sidenav-toggle-bar::before, .sidenav-toggle-bar::after {
+            content: '';
+            position: absolute;
+            background: var(--text-color);
+            width: 1.5rem;
+            height: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .sidenav-toggle-bar::before { top: -0.5rem; }
+        .sidenav-toggle-bar::after { top: 0.5rem; }
+
+        .sidenav-checkbox:checked + .sidenav-toggle {
+            box-shadow: var(--inset-shadow);
+        }
+
+        .sidenav-checkbox:checked + .sidenav-toggle .sidenav-toggle-bar {
+            transform: rotate(45deg);
+        }
+
+        .sidenav-checkbox:checked + .sidenav-toggle .sidenav-toggle-bar::before {
+            top: 0;
+            transform: rotate(90deg);
+        }
+
+        .sidenav-checkbox:checked + .sidenav-toggle .sidenav-toggle-bar::after {
+            top: 0;
+            transform: rotate(90deg);
+        }
+
+        .sidenav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--bg-color);
+            box-shadow: var(--primary-shadow);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            padding-top: 6rem;
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+        }
+
+        .sidenav-checkbox:checked ~ .sidenav {
+            transform: translateX(0);
+        }
+
+        .sidenav-button {
+            text-align: left;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            box-shadow: none;
+            border-radius: 0;
+            background: transparent;
+            width: 100%;
+        }
+
+        .sidenav-button:hover {
+            box-shadow: none;
+            background: rgba(220, 220, 220, 0.5);
+            transform: none;
+        }
+
+        @media (max-width: 768px) {
+            .neumorphic-table { font-size: 0.8rem; }
+            .neumorphic-table th, .neumorphic-table td { padding: 0.75rem 0.5rem; }
+            .sidenav { width: 80%; }
+            .neumorphic-table th:nth-child(2), .neumorphic-table td:nth-child(2) {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans container-main p-4 md:p-8">
+
+    <!-- Nav Menu -->
+    <div class="sidenav-container">
+        <input type="checkbox" id="sidenav-checkbox" class="sidenav-checkbox hidden">
+        <label for="sidenav-checkbox" class="sidenav-toggle">
+            <span class="sidenav-toggle-bar"></span>
+        </label>
+        <nav class="sidenav space-y-2">
+            <button data-page="home" class="sidenav-button">Home</button>
+            <button data-page="epl" class="sidenav-button">E-Premier League</button>
+            <button data-page="championship" class="sidenav-button">E-Championship</button>
+            <button data-page="league2" class="sidenav-button">E-League 2</button>
+            <button data-page="league1" class="sidenav-button">E-League 1</button>
+            <button data-page="leaderboard" class="sidenav-button">Leaderboard</button>
+            <button data-page="history" class="sidenav-button">Match History</button>
+            <button data-page="admin" class="sidenav-button">Admin</button>
+        </nav>
+    </div>
+
+    <div class="max-w-7xl mx-auto space-y-16">
+
+        <!-- Home Page -->
+        <section id="home-page" class="page-content active">
+            <div class="neumorphic-card p-8 md:p-16 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-gray-800">Efootball League Manager</h1>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                    Welcome to the official platform for Efootball League Standings. Track your favorite teams, view real-time rankings, and share the excitement of promotion and relegation with your friends.
+                </p>
+                <div class="flex justify-center mt-8">
+                    <img src="https://placehold.co/200x200/eef1f6/333333?text=Controller" alt="Game Controller Icon" class="rounded-full shadow-lg neumorphic-card p-4">
+                </div>
+            </div>
+        </section>
+
+        <!-- E-Premier League Page -->
+        <section id="epl-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">E-Premier League Standings</h2>
+                <div id="eplTableContainer" class="neumorphic-table-container max-h-[500px]">
+                    <table id="eplTable" class="neumorphic-table"><thead><tr><th>#</th><th class="sticky-header">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>
+                </div>
+                <div class="flex justify-center mt-8"><button data-table-id="eplTableContainer" class="share-btn neumorphic-button px-6 py-3 text-lg text-gray-700">Share Table</button></div>
+            </div>
+        </section>
+
+        <!-- E-Championship Page -->
+        <section id="championship-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">E-Championship Standings</h2>
+                <div id="championshipTableContainer" class="neumorphic-table-container max-h-[500px]">
+                    <table id="championshipTable" class="neumorphic-table"><thead><tr><th>#</th><th class="sticky-header">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>
+                </div>
+                <div class="flex justify-center mt-8"><button data-table-id="championshipTableContainer" class="share-btn neumorphic-button px-6 py-3 text-lg text-gray-700">Share Table</button></div>
+            </div>
+        </section>
+
+        <!-- E-League 2 Page -->
+        <section id="league2-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">E-League 2 Standings</h2>
+                <div id="league2TableContainer" class="neumorphic-table-container max-h-[500px]">
+                    <table id="league2Table" class="neumorphic-table"><thead><tr><th>#</th><th class="sticky-header">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>
+                </div>
+                <div class="flex justify-center mt-8"><button data-table-id="league2TableContainer" class="share-btn neumorphic-button px-6 py-3 text-lg text-gray-700">Share Table</button></div>
+            </div>
+        </section>
+
+        <!-- E-League 1 Page -->
+        <section id="league1-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">E-League 1 Standings</h2>
+                <div id="league1TableContainer" class="neumorphic-table-container max-h-[500px]">
+                    <table id="league1Table" class="neumorphic-table"><thead><tr><th>#</th><th class="sticky-header">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>
+                </div>
+                <div class="flex justify-center mt-8"><button data-table-id="league1TableContainer" class="share-btn neumorphic-button px-6 py-3 text-lg text-gray-700">Share Table</button></div>
+            </div>
+        </section>
+        
+        <!-- Leaderboard Page -->
+        <section id="leaderboard-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">Top Promotion Contenders</h2>
+                <div id="leaderboardList" class="space-y-6"></div>
+            </div>
+        </section>
+        
+        <!-- Match History Page -->
+        <section id="history-page" class="page-content">
+            <div class="neumorphic-card p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">Match History</h2>
+                <input type="text" id="matchSearch" placeholder="Search by team name..." class="neumorphic-input w-full">
+                <div class="h-[500px] overflow-y-auto neumorphic-card p-4 mt-4">
+                    <ul id="matchHistoryList" class="space-y-2"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Page -->
+        <section id="admin-page" class="page-content">
+            <div id="admin-login" class="neumorphic-card p-8 max-w-md mx-auto">
+                <h2 class="text-2xl font-semibold text-center mb-6">Admin Login</h2>
+                <form id="loginForm" class="space-y-4">
+                    <input type="text" id="username" placeholder="Username" class="neumorphic-input w-full" autocomplete="off" required>
+                    <input type="password" id="password" placeholder="Password" class="neumorphic-input w-full" autocomplete="off" required>
+                    <button type="submit" class="neumorphic-button w-full px-6 py-3 font-semibold">Login</button>
+                    <div id="loginMessage" class="text-red-500 text-center mt-2 hidden"></div>
+                </form>
+            </div>
+
+            <div id="admin-dashboard" class="neumorphic-card p-8 hidden">
+                <h2 class="text-2xl font-semibold text-center mb-6">Admin Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Submit Score -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-medium">Update Scores</h3>
+                        <form id="scoreForm" class="space-y-4">
+                            <select id="teamASelect" class="neumorphic-input w-full cursor-pointer" required><option value="" disabled selected>Select Team A</option></select>
+                            <input type="number" id="scoreA" placeholder="Score A" class="neumorphic-input w-full" required min="0">
+                            <span class="block text-center text-gray-500 font-bold">VS</span>
+                            <select id="teamBSelect" class="neumorphic-input w-full cursor-pointer" required><option value="" disabled selected>Select Team B</option></select>
+                            <input type="number" id="scoreB" placeholder="Score B" class="neumorphic-input w-full" required min="0">
+                            <button type="submit" class="neumorphic-button w-full px-4 py-2 font-semibold">Submit Score</button>
+                        </form>
+                    </div>
+
+                    <!-- Team Management -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-medium">Team Management</h3>
+                        <form id="teamForm" class="space-y-4">
+                            <input type="text" id="teamNameInput" placeholder="Team Name" class="neumorphic-input w-full" required>
+                            <select id="teamLeagueSelect" class="neumorphic-input w-full cursor-pointer" required>
+                                <option value="" disabled selected>Select League</option>
+                                <option value="epl">E-Premier League</option>
+                                <option value="championship">E-Championship</option>
+                                <option value="league2">E-League 2</option>
+                                <option value="league1">E-League 1</option>
+                            </select>
+                            <button type="submit" class="neumorphic-button w-full px-4 py-2 font-semibold">Add Team</button>
+                        </form>
+                        <div class="h-64 overflow-y-auto neumorphic-card p-4">
+                            <ul id="teamList" class="space-y-2"></ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Rename Team -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-medium">Rename Team</h3>
+                        <form id="renameForm" class="space-y-4">
+                            <select id="renameTeamSelect" class="neumorphic-input w-full cursor-pointer" required>
+                                <option value="" disabled selected>Select Team to Rename</option>
+                            </select>
+                            <input type="text" id="newTeamName" placeholder="New Team Name" class="neumorphic-input w-full" required>
+                            <button type="submit" class="neumorphic-button w-full px-4 py-2 font-semibold">Rename Team</button>
+                        </form>
+                    </div>
+
+                    <!-- Season Management -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-medium">Season Management</h3>
+                        <p class="text-gray-600">
+                            This will promote and relegate the top/bottom 5 teams across all leagues and reset all stats.
+                        </p>
+                        <button id="endSeasonBtn" class="neumorphic-button w-full px-6 py-3 font-semibold text-red-700">End Season</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Hidden message box for alerts -->
+    <div id="messageBox" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 neumorphic-card p-6 text-center shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        <p id="messageText" class="text-gray-700 font-medium"></p>
+        <button id="closeMessageBox" class="neumorphic-button mt-4 px-4 py-2 text-sm text-gray-600">OK</button>
+    </div>
+
+    <script>
+        const defaultTeams = {
+            epl: [
+                { team: 'Eagles United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Dragons FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Phoenix City', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Thunderbolts SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Titans FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Warriors United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Storm FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Knights City', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Vikings United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Spartans FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 }
+            ],
+            championship: [
+                { team: 'Lions FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Monarchs SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Cobras United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Panthers FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Strikers City', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Rockets United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Blasters FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Stars SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Comets FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Tornadoes City', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 }
+            ],
+            league2: [
+                { team: 'Red Hawks FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Green Vipers SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Silver Sharks United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Golden Lions FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Black Wolves SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Blue Bears United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'White Tigers FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Grey Falcons SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Orange Wildcats United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Purple Jaguars FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 }
+            ],
+            league1: [
+                { team: 'Crimson Ravens FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Azure Sharks SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Onyx Eagles United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Jade Dragons FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Ruby Wolves SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Sapphire Tigers United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Emerald Hawks FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Diamond Leopards SC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Obsidian Phoenix United', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 },
+                { team: 'Topaz Falcons FC', P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 }
+            ]
+        };
+
+        const leaguesOrder = ['epl', 'championship', 'league2', 'league1'];
+
+        // --- View Logic (Page Navigation) ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById('sidenav-checkbox').checked = false;
+        }
+
+        document.querySelectorAll('.sidenav-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const pageId = button.dataset.page;
+                showPage(pageId + '-page');
+                if (pageId === 'leaderboard') {
+                    renderLeaderboard();
+                }
+            });
+        });
+
+        // --- Custom Message Box ---
+        function showMessageBox(message) {
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            messageText.textContent = message;
+            messageBox.style.opacity = '1';
+            messageBox.style.pointerEvents = 'auto';
+        }
+
+        document.getElementById('closeMessageBox').addEventListener('click', () => {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.style.opacity = '0';
+            messageBox.style.pointerEvents = 'none';
+        });
+
+        // --- Data Management (localStorage) ---
+        function getLeaguesData() {
+            const data = localStorage.getItem('efootballLeagues');
+            return data ? JSON.parse(data) : null;
+        }
+
+        function getMatchHistory() {
+            const history = localStorage.getItem('efootballMatchHistory');
+            return history ? JSON.parse(history) : [];
+        }
+
+        function saveLeaguesData(data) {
+            localStorage.setItem('efootballLeagues', JSON.stringify(data));
+            renderAll();
+        }
+
+        function saveMatchHistory(history) {
+            localStorage.setItem('efootballMatchHistory', JSON.stringify(history));
+            renderMatchHistory();
+        }
+
+        // --- Table & UI Functions ---
+        function populateTable(tableId, data) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            tableBody.innerHTML = '';
+            const sortedData = [...data].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+            const leagueIndex = leaguesOrder.indexOf(tableId.replace('Table', ''));
+
+            sortedData.forEach((rowData, index) => {
+                const row = document.createElement('tr');
+                if (leagueIndex < leaguesOrder.length - 1 && index < 5) {
+                    row.classList.add('row-promotion');
+                } else if (leagueIndex > 0 && index >= sortedData.length - 5) {
+                    row.classList.add('row-relegation');
+                }
+
+                const rankCell = document.createElement('td');
+                rankCell.textContent = index + 1;
+                row.appendChild(rankCell);
+
+                const teamCell = document.createElement('td');
+                teamCell.textContent = rowData.team;
+                row.appendChild(teamCell);
+
+                const stats = ['P', 'W', 'D', 'L', 'GF', 'GA', 'GD', 'Pts'];
+                stats.forEach(key => {
+                    const cell = document.createElement('td');
+                    cell.textContent = rowData[key];
+                    row.appendChild(cell);
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function shareTable(tableId) {
+            const shareBtn = document.querySelector(`button[data-table-id='${tableId}']`);
+            const originalBtnText = shareBtn.textContent;
+            shareBtn.textContent = 'Preparing...';
+            shareBtn.disabled = true;
+
+            const tableContainer = document.getElementById(tableId);
+            if (!tableContainer) {
+                 showMessageBox('Table not found.');
+                 shareBtn.textContent = originalBtnText;
+                 shareBtn.disabled = false;
+                 return;
+            }
+
+            const originalMaxHeight = tableContainer.style.maxHeight;
+            const originalOverflow = tableContainer.style.overflow;
+
+            tableContainer.style.maxHeight = 'none';
+            tableContainer.style.overflow = 'visible';
+
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
+            try {
+                const canvas = await html2canvas(tableContainer, { backgroundColor: null, scale: 2 });
+                const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([imageBlob], 'efootball_standings.png', { type: 'image/png' });
+
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Efootball League Standings',
+                        text: 'Check out the latest league standings!'
+                    });
+                } else {
+                    const imageUrl = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = imageUrl;
+                    a.download = 'efootball_standings.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showMessageBox('Sharing not supported. The image has been downloaded.');
+                }
+            } catch (error) {
+                console.error('Error sharing or downloading table:', error);
+                showMessageBox('An error occurred. Please try again.');
+            } finally {
+                tableContainer.style.maxHeight = originalMaxHeight;
+                tableContainer.style.overflow = originalOverflow;
+                shareBtn.textContent = originalBtnText;
+                shareBtn.disabled = false;
+            }
+        }
+
+        document.querySelectorAll('.share-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                shareTable(btn.dataset.tableId);
+            });
+        });
+
+        // --- Admin Panel Logic ---
+        const loginForm = document.getElementById('loginForm');
+        const adminLoginSection = document.getElementById('admin-login');
+        const adminDashboardSection = document.getElementById('admin-dashboard');
+        const loginMessage = document.getElementById('loginMessage');
+        const teamASelect = document.getElementById('teamASelect');
+        const teamBSelect = document.getElementById('teamBSelect');
+        const renameTeamSelect = document.getElementById('renameTeamSelect');
+        const scoreForm = document.getElementById('scoreForm');
+        const teamForm = document.getElementById('teamForm');
+        const renameForm = document.getElementById('renameForm');
+        const teamList = document.getElementById('teamList');
+        const teamNameInput = document.getElementById('teamNameInput');
+        const teamLeagueSelect = document.getElementById('teamLeagueSelect');
+        const endSeasonBtn = document.getElementById('endSeasonBtn');
+        const matchSearchInput = document.getElementById('matchSearch');
+        const matchHistoryList = document.getElementById('matchHistoryList');
+        const leaderboardList = document.getElementById('leaderboardList');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'prof' && password === 'prof') {
+                adminLoginSection.classList.add('hidden');
+                adminDashboardSection.classList.remove('hidden');
+                renderAdminSelects();
+                renderAdminList();
+                showMessageBox('Admin logged in successfully.');
+            } else {
+                loginMessage.textContent = 'Invalid username or password.';
+                loginMessage.classList.remove('hidden');
+            }
+        });
+
+        function renderAdminSelects() {
+            const selects = [teamASelect, teamBSelect, renameTeamSelect];
+            selects.forEach(select => {
+                select.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = select.id === 'renameTeamSelect' ? 'Select Team to Rename' : `Select Team ${select.id === 'teamASelect' ? 'A' : 'B'}`;
+                select.appendChild(defaultOption);
+            });
+
+            const leagues = getLeaguesData();
+            if (!leagues) return;
+
+            leaguesOrder.forEach(league => {
+                const teams = leagues[league];
+                if (teams.length > 0) {
+                    const optgroupA = document.createElement('optgroup');
+                    optgroupA.label = league.toUpperCase();
+                    const optgroupB = document.createElement('optgroup');
+                    optgroupB.label = league.toUpperCase();
+                    const optgroupRename = document.createElement('optgroup');
+                    optgroupRename.label = league.toUpperCase();
+
+                    teams.forEach(team => {
+                        const optionA = document.createElement('option');
+                        optionA.value = `${league}:${team.team}`;
+                        optionA.textContent = team.team;
+                        optgroupA.appendChild(optionA);
+
+                        const optionB = document.createElement('option');
+                        optionB.value = `${league}:${team.team}`;
+                        optionB.textContent = team.team;
+                        optgroupB.appendChild(optionB);
+
+                        const optionRename = document.createElement('option');
+                        optionRename.value = `${league}:${team.team}`;
+                        optionRename.textContent = team.team;
+                        optgroupRename.appendChild(optionRename);
+                    });
+                    teamASelect.appendChild(optgroupA);
+                    teamBSelect.appendChild(optgroupB);
+                    renameTeamSelect.appendChild(optgroupRename);
+                }
+            });
+        }
+
+        scoreForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const [leagueA, teamA] = teamASelect.value.split(':');
+            const [leagueB, teamB] = teamBSelect.value.split(':');
+            const scoreA = parseInt(document.getElementById('scoreA').value);
+            const scoreB = parseInt(document.getElementById('scoreB').value);
+
+            if (teamA === teamB) {
+                showMessageBox("Cannot submit a score for a team playing against itself.");
+                return;
+            }
+
+            const leagues = getLeaguesData();
+            let teamAObj = leagues[leagueA].find(t => t.team === teamA);
+            let teamBObj = leagues[leagueB].find(t => t.team === teamB);
+
+            if (!teamAObj || !teamBObj) {
+                showMessageBox("Error: One or both teams not found.");
+                return;
+            }
+
+            teamAObj.P += 1;
+            teamAObj.GF += scoreA;
+            teamAObj.GA += scoreB;
+
+            teamBObj.P += 1;
+            teamBObj.GF += scoreB;
+            teamBObj.GA += scoreA;
+
+            if (scoreA > scoreB) {
+                teamAObj.W += 1;
+                teamAObj.Pts += 3;
+                teamBObj.L += 1;
+            } else if (scoreA < scoreB) {
+                teamAObj.L += 1;
+                teamBObj.W += 1;
+                teamBObj.Pts += 3;
+            } else {
+                teamAObj.D += 1;
+                teamAObj.Pts += 1;
+                teamBObj.D += 1;
+                teamBObj.Pts += 1;
+            }
+
+            teamAObj.GD = teamAObj.GF - teamAObj.GA;
+            teamBObj.GD = teamBObj.GF - teamBObj.GA;
+
+            const history = getMatchHistory();
+            history.unshift({ teamA, scoreA, teamB, scoreB, leagueA, leagueB, date: new Date().toLocaleString() });
+            saveMatchHistory(history);
+
+            saveLeaguesData(leagues);
+            showMessageBox(`Score submitted: ${teamA} ${scoreA} - ${scoreB} ${teamB}`);
+            e.target.reset();
+        });
+
+        function renderMatchHistory(filter = '') {
+            matchHistoryList.innerHTML = '';
+            const history = getMatchHistory();
+
+            const filteredHistory = history.filter(match =>
+                match.teamA.toLowerCase().includes(filter.toLowerCase()) ||
+                match.teamB.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filteredHistory.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No matches found.';
+                li.className = 'text-center text-gray-500';
+                matchHistoryList.appendChild(li);
+                return;
+            }
+
+            filteredHistory.forEach(match => {
+                const li = document.createElement('li');
+                li.className = 'neumorphic-card p-3 rounded-xl transition-transform hover:scale-[1.01] duration-200 text-sm';
+                li.innerHTML = `
+                    <p class="font-semibold">${match.teamA} ${match.scoreA} - ${match.scoreB} ${match.teamB}</p>
+                    <p class="text-xs text-gray-500">${match.leagueA.toUpperCase()} | ${match.date}</p>
+                `;
+                matchHistoryList.appendChild(li);
+            });
+        }
+
+        matchSearchInput.addEventListener('input', (e) => {
+            renderMatchHistory(e.target.value);
+        });
+
+        function renderAdminList() {
+            teamList.innerHTML = '';
+            const leagues = getLeaguesData();
+            if (!leagues) return;
+
+            leaguesOrder.forEach(league => {
+                const teams = leagues[league];
+                if (teams.length > 0) {
+                    const leagueHeader = document.createElement('h4');
+                    leagueHeader.textContent = `--- ${league.toUpperCase()} ---`;
+                    leagueHeader.className = 'font-semibold text-center mt-4';
+                    teamList.appendChild(leagueHeader);
+
+                    const ul = document.createElement('ul');
+                    ul.id = league + 'List';
+                    ul.className = 'space-y-2 mt-2';
+                    teamList.appendChild(ul);
+
+                    teams.forEach(teamData => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-center justify-between neumorphic-card p-3 rounded-xl transition-transform hover:scale-[1.01] duration-200';
+                        li.innerHTML = `
+                            <span class="flex-grow text-gray-700 font-medium">${teamData.team}</span>
+                            <button data-league="${league}" data-team="${teamData.team}" class="remove-team-btn ml-2 neumorphic-button text-red-500 px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200">Remove</button>
+                        `;
+                        ul.appendChild(li);
+                    });
+                }
+            });
+        }
+
+        teamForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const teamName = teamNameInput.value.trim();
+            const league = teamLeagueSelect.value;
+            if (!teamName || !league) {
+                showMessageBox("Team name and league are required.");
+                return;
+            }
+
+            const leagues = getLeaguesData();
+            const existingTeam = leagues[league].find(t => t.team.toLowerCase() === teamName.toLowerCase());
+            if (existingTeam) {
+                showMessageBox("Team already exists in this league.");
+                return;
+            }
+
+            const newTeam = { team: teamName, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 };
+            leagues[league].push(newTeam);
+            saveLeaguesData(leagues);
+            showMessageBox(`Successfully added team ${teamName} to ${league}.`);
+            e.target.reset();
+        });
+
+        renameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const oldTeamValue = renameTeamSelect.value;
+            const newTeamName = document.getElementById('newTeamName').value.trim();
+
+            if (!oldTeamValue || !newTeamName) {
+                showMessageBox("Please select a team and provide a new name.");
+                return;
+            }
+            const [league, oldTeamName] = oldTeamValue.split(':');
+            
+            const leagues = getLeaguesData();
+            const teamObj = leagues[league].find(t => t.team === oldTeamName);
+
+            if (!teamObj) {
+                showMessageBox("Error: Team not found.");
+                return;
+            }
+
+            // Check for duplicate team name in the same league
+            const newNameExists = leagues[league].some(t => t.team.toLowerCase() === newTeamName.toLowerCase());
+            if (newNameExists) {
+                 showMessageBox("A team with that new name already exists in this league.");
+                 return;
+            }
+
+            // Update the team name in the leagues data
+            teamObj.team = newTeamName;
+            
+            // Update the team name in the match history
+            const history = getMatchHistory();
+            const updatedHistory = history.map(match => {
+                if (match.teamA === oldTeamName) {
+                    match.teamA = newTeamName;
+                }
+                if (match.teamB === oldTeamName) {
+                    match.teamB = newTeamName;
+                }
+                return match;
+            });
+
+            saveLeaguesData(leagues);
+            saveMatchHistory(updatedHistory);
+            showMessageBox(`Successfully renamed ${oldTeamName} to ${newTeamName}.`);
+            e.target.reset();
+        });
+
+        teamList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-team-btn')) {
+                const teamName = e.target.dataset.team;
+                const league = e.target.dataset.league;
+                const leagues = getLeaguesData();
+
+                leagues[league] = leagues[league].filter(t => t.team !== teamName);
+                saveLeaguesData(leagues);
+                showMessageBox(`Successfully removed team ${teamName} from ${league}.`);
+            }
+        });
+
+        endSeasonBtn.addEventListener('click', () => {
+            endSeasonBtn.disabled = true;
+            endSeasonBtn.textContent = 'Processing...';
+
+            const leagues = getLeaguesData();
+
+            const sortedLeagues = {};
+            leaguesOrder.forEach(league => {
+                sortedLeagues[league] = [...leagues[league]].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+            });
+
+            const promotedToEpl = sortedLeagues.championship.slice(0, 5);
+            const relegatedFromEpl = sortedLeagues.epl.slice(5);
+
+            const promotedToChampionship = sortedLeagues.league2.slice(0, 5);
+            const relegatedFromChampionship = sortedLeagues.championship.slice(5);
+
+            const promotedToLeague2 = sortedLeagues.league1.slice(0, 5);
+            const relegatedFromLeague2 = sortedLeagues.league2.slice(5);
+
+            const newLeagues = {
+                epl: [...sortedLeagues.epl.slice(0, 5), ...promotedToEpl],
+                championship: [...relegatedFromEpl, ...sortedLeagues.championship.slice(5, 10), ...promotedToChampionship].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF),
+                league2: [...relegatedFromChampionship, ...sortedLeagues.league2.slice(5, 10), ...promotedToLeague2].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF),
+                league1: [...relegatedFromLeague2, ...sortedLeagues.league1.slice(5, 10)].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF)
+            };
+
+            const resetStats = (teams) => teams.map(t => ({ ...t, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 }));
+
+            saveMatchHistory([]);
+
+            saveLeaguesData({
+                epl: resetStats(newLeagues.epl),
+                championship: resetStats(newLeagues.championship),
+                league2: resetStats(newLeagues.league2),
+                league1: resetStats(newLeagues.league1)
+            });
+
+            showMessageBox("Season has ended successfully! Promotion and relegation have occurred.");
+
+            endSeasonBtn.disabled = false;
+            endSeasonBtn.textContent = 'End Season';
+        });
+        
+        function renderLeaderboard() {
+            leaderboardList.innerHTML = '';
+            const leagues = getLeaguesData();
+            if (!leagues) {
+                leaderboardList.innerHTML = '<p class="text-center text-gray-500">No league data available.</p>';
+                return;
+            }
+            
+            const promotionLeagues = ['championship', 'league2', 'league1'];
+            let hasPromotionTeams = false;
+            
+            promotionLeagues.forEach(league => {
+                const teams = leagues[league];
+                if (teams.length > 0) {
+                    const sortedTeams = [...teams].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+                    const promotedTeams = sortedTeams.slice(0, 5);
+                    
+                    if (promotedTeams.length > 0) {
+                        hasPromotionTeams = true;
+                        const leagueCard = document.createElement('div');
+                        leagueCard.className = 'neumorphic-card p-4 space-y-2';
+                        leagueCard.innerHTML = `<h3 class="text-xl font-semibold">${league.toUpperCase()}</h3>`;
+                        
+                        const teamList = document.createElement('ul');
+                        teamList.className = 'space-y-1';
+                        
+                        promotedTeams.forEach((team, index) => {
+                            const li = document.createElement('li');
+                            li.className = 'flex justify-between items-center bg-gray-50 rounded-lg p-2';
+                            li.innerHTML = `
+                                <span><span class="font-bold mr-2">${index + 1}.</span> ${team.team}</span>
+                                <span class="text-sm font-semibold">${team.Pts} Pts</span>
+                            `;
+                            teamList.appendChild(li);
+                        });
+                        
+                        leagueCard.appendChild(teamList);
+                        leaderboardList.appendChild(leagueCard);
+                    }
+                }
+            });
+            
+            if (!hasPromotionTeams) {
+                leaderboardList.innerHTML = '<p class="text-center text-gray-500">No promotion teams to display yet. Submit some scores!</p>';
+            }
+        }
+
+        function renderAll() {
+            const data = getLeaguesData();
+            if (data) {
+                populateTable('eplTable', data.epl);
+                populateTable('championshipTable', data.championship);
+                populateTable('league2Table', data.league2);
+                populateTable('league1Table', data.league1);
+            }
+            renderMatchHistory();
+            if (!adminDashboardSection.classList.contains('hidden')) {
+                renderAdminSelects();
+                renderAdminList();
+            }
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!getLeaguesData()) {
+                saveLeaguesData(defaultTeams);
+            }
+            if (!getMatchHistory()) {
+                saveMatchHistory([]);
+            }
+            renderAll();
+        });
+    </script>
+</body>
+</html>
