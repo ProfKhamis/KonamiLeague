@@ -652,14 +652,14 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (username === 'prof' && password === 'prof') {
+            if (username === 'Prof' && password === 'prof') 
                 adminLoginSection.classList.add('hidden');
                 adminDashboardSection.classList.remove('hidden');
                 renderAdminSelects();
                 renderAdminList();
                 showMessageBox('Admin logged in successfully.');
             } else {
-                loginMessage.textContent = 'Invalid username or password.';
+                loginMessage.textContent = 'Invalid credentials.';
                 loginMessage.classList.remove('hidden');
             }
         });
@@ -972,7 +972,7 @@
                 const teams = leagues[league];
                 if (teams.length > 0) {
                     const sortedTeams = [...teams].sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
-                    const promotedTeams = sortedTeams.slice(0, 5);
+                    const promotedTeams = sortedTeams.slice(0, 3);
                     
                     if (promotedTeams.length > 0) {
                         hasPromotionTeams = true;
